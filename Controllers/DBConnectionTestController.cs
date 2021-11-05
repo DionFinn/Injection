@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using DBConnExample.models;
 using Microsoft.Extensions.Configuration;
+using System.Data;
 
 namespace DBConnExample.Controllers
 {
@@ -36,12 +37,31 @@ namespace DBConnExample.Controllers
         public List<Customer> GetCustomer(string searchString) {
             List<Customer> customers = new List<Customer>();
 
-            // code goes here       
-            
-            return customers;
+            // code goes here  
+        SqlConnection connection = new SqlConnection(this.connectionString);
+        string QueryString = "Select * from Customer WHERE username = @UserName;";
+
+        SqlCommand command = new SqlCommand(QueryString, connection);
+        command.Parameters.Add("@UserName", SqlDbType.NVarChar);
+        command.Parameters["@UserName"].Value = searchString;
+
+        connection.Open();
+        using(SqlDataReader reader = command.ExecuteReader()){
+            while(reader.Read()){
+                customers.Add(new Customer(){
+                    Id = reader.GetInt32(0),
+                    Username = reader.GetString(1),
+                    FirstName = reader.GetString(2),
+                    LastName = reader.GetString(3),
+                    Password = reader.GetString(4)
+                  });
+                connection.Close();
+            }
+        return customers; 
         }
 
     }
+}
+}
 
     
-}
